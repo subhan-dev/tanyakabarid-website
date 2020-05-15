@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 // import CssBaseline from '@material-ui/core/CssBaseline';
 // import AppBar from '@material-ui/core/AppBar';
@@ -127,12 +128,19 @@ const Kuesioner = () => {
         title: 'Silahkan Lengkapi Data',
       })
     } else {
-      setActiveStep(0)
-      setInput(INITIAL_INPUT)
-      Swal.fire({
-        icon: 'success',
-        title: 'Terima Kasih Telah Memberi Kabar',
-      })
+      axios.post('https://secure-bayou-44466.herokuapp.com/user/input', input)
+        .then(res => {
+          console.log(res)
+          setActiveStep(0)
+          setInput(INITIAL_INPUT)
+          Swal.fire({
+            icon: 'success',
+            title: 'Terima Kasih Telah Memberi Kabar',
+          })
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   }
 

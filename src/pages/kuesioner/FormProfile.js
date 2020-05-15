@@ -42,8 +42,8 @@ export default ({ handleChange, input }) => {
               onChange={handleChange}
               name="gender"
             >
-              <MenuItem value="Laki-laki">Laki-laki</MenuItem>
-              <MenuItem value="Perempuan">Perempuan</MenuItem>
+              <MenuItem value="L">Laki-laki</MenuItem>
+              <MenuItem value="P">Perempuan</MenuItem>
             </Select>
           </FormControl>
         </Grid>
