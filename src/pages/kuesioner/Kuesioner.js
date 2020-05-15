@@ -11,6 +11,7 @@ import StepLabel from '@material-ui/core/StepLabel';
 import Button from '@material-ui/core/Button';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
+// import CircularProgress from '@material-ui/core/CircularProgress';
 import FormKuesioner from './FormKuesioner';
 import FormProfile from './FormProfile';
 import Swal from 'sweetalert2';
@@ -91,6 +92,7 @@ const Kuesioner = () => {
   const classes = useStyles();
   const [activeStep, setActiveStep] = React.useState(0);
   const [input, setInput] = React.useState(INITIAL_INPUT);
+  const [button, setButton] = React.useState(false)
   console.log(input)
 
   const handleChange = event => {
@@ -128,11 +130,13 @@ const Kuesioner = () => {
         title: 'Silahkan Lengkapi Data',
       })
     } else {
+      setButton(true)
       axios.post('https://secure-bayou-44466.herokuapp.com/user/input', input)
         .then(res => {
           console.log(res)
           setActiveStep(0)
           setInput(INITIAL_INPUT)
+          setButton(false)
           Swal.fire({
             icon: 'success',
             title: 'Terima Kasih Telah Memberi Kabar',
@@ -186,7 +190,9 @@ const Kuesioner = () => {
                     color="primary"
                     onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
                     className={classes.button}
+                    disabled={button}
                   >
+                    {/* <CircularProgress color="secondary" size={24} /> */}
                     {activeStep === steps.length - 1 ? 'Kabarkan' : 'Next'}
                   </Button>
                 </div>
