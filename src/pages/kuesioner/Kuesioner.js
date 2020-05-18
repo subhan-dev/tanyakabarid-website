@@ -1,9 +1,6 @@
 import React from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
-// import CssBaseline from '@material-ui/core/CssBaseline';
-// import AppBar from '@material-ui/core/AppBar';
-// import Toolbar from '@material-ui/core/Toolbar';
 import Paper from '@material-ui/core/Paper';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
@@ -11,10 +8,19 @@ import StepLabel from '@material-ui/core/StepLabel';
 import Button from '@material-ui/core/Button';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
-// import CircularProgress from '@material-ui/core/CircularProgress';
 import FormKuesioner from './FormKuesioner';
 import FormProfile from './FormProfile';
 import Swal from 'sweetalert2';
+
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import Slide from '@material-ui/core/Slide';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="down" ref={ref} {...props} />;
+});
 
 function Copyright() {
   return (
@@ -68,12 +74,12 @@ const useStyles = makeStyles((theme) => ({
 
 const steps = ['Profile', 'Tanya Kabar'];
 
-function getStepContent(step, handleChange, input) {
+function getStepContent(step, handleChange, input, reCaptcha) {
   switch (step) {
     case 0:
       return <FormProfile handleChange={handleChange} input={input} />;
     case 1:
-      return <FormKuesioner handleChange={handleChange} input={input} />;
+      return <FormKuesioner handleChange={handleChange} input={input} reCaptcha={reCaptcha} />;
     default:
       throw new Error('Unknown step');
   }
@@ -85,7 +91,7 @@ const INITIAL_INPUT = {
   age: '',
   occupation: '',
   A1: '', A2: '', A3: '', A4: '', A5: '', A6: '', A7: '', A8: '', A9: '', A10: '', 
-  A11: '', A12: '', A13: '', A14: '', A15: '', A16: '', A17: '', A18: '', A19: '', A20: '',
+  A11: '', A12: '', A13: '', A14: '', A15: '', A16: '', A17: '', A18: '', A19: '', A20: '', agreement1: true,
 };
 
 const Kuesioner = () => {
@@ -93,7 +99,29 @@ const Kuesioner = () => {
   const [activeStep, setActiveStep] = React.useState(0);
   const [input, setInput] = React.useState(INITIAL_INPUT);
   const [button, setButton] = React.useState(false)
+  const [captcha, setCaptcha] = React.useState(null)
   console.log(input)
+
+  const [open, setOpen] = React.useState(false);
+
+  const reCaptcha = value => {
+    setCaptcha(value)
+  }
+
+  const handleClickOpen = () => {
+    if(!checkInput(input) || !captcha) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Silahkan Lengkapi Data',
+      })
+    } else {
+      setOpen(true);
+    }
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   const handleChange = event => {
     setInput({
@@ -123,29 +151,27 @@ const Kuesioner = () => {
     }
   };
 
-  const handleSubmit = () => {
-    if(!checkInput(input)) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Silahkan Lengkapi Data',
+  const handleSubmit = agreement => {
+    setButton(true)
+    axios.post('http://localhost:2019/user/input', {...input, agreement1: agreement})
+      .then(res => {
+        console.log(res)
+        setActiveStep(0)
+        handleClose()
+        setInput(INITIAL_INPUT)
+        setButton(false)
+        Swal.fire({
+          icon: 'success',
+          title: 'Terima kasih atas partisipasi Kamu dalam Aksi Tanya Kabar',
+          showConfirmButton: false,
+        })
+        setTimeout(() => {
+          window.location.href = `http://tanyakabar.id`
+        }, 2000)
       })
-    } else {
-      setButton(true)
-      axios.post('https://secure-bayou-44466.herokuapp.com/user/input', input)
-        .then(res => {
-          console.log(res)
-          setActiveStep(0)
-          setInput(INITIAL_INPUT)
-          setButton(false)
-          Swal.fire({
-            icon: 'success',
-            title: 'Terima Kasih Telah Memberi Kabar',
-          })
-        })
-        .catch(err => {
-          console.log(err)
-        })
-    }
+      .catch(err => {
+        console.log(err)
+      })
   }
 
   const handleBack = () => {
@@ -156,10 +182,11 @@ const Kuesioner = () => {
     <React.Fragment>
       <main className={classes.layout}>
         <Paper className={classes.paper}>
-          <Typography component="h1" variant="h4" align="center">
-            Apa Kabar ?
+          <Typography component="h1" variant="h5" align="center">
+            Bagaimana Kabarmu Hari Ini ?<br />
+            Mohon isi Data sesuai dengan Kondisi Kehidupan Kamu Saat Ini
           </Typography>
-          <Stepper activeStep={activeStep} className={classes.stepper} >
+          <Stepper activeStep={activeStep} className={classes.stepper} style={{paddingTop: '40px'}} >
             {steps.map((label) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -178,8 +205,8 @@ const Kuesioner = () => {
               </React.Fragment>
             ) : (
               <React.Fragment>
-                {getStepContent(activeStep, handleChange, input)}
-                <div className={classes.buttons}>
+                {getStepContent(activeStep, handleChange, input, reCaptcha)}
+                <div className={classes.buttons} style={{marginTop: '24px'}}>
                   {activeStep !== 0 && (
                     <Button onClick={handleBack} className={classes.button}>
                       Back
@@ -188,7 +215,7 @@ const Kuesioner = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+                    onClick={activeStep === steps.length - 1 ? handleClickOpen : handleNext}
                     className={classes.button}
                     disabled={button}
                   >
@@ -202,6 +229,31 @@ const Kuesioner = () => {
         </Paper>
         <Copyright />
       </main>
+
+      <Dialog
+        open={open}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-slide-title"
+        aria-describedby="alert-dialog-slide-description"
+      >
+        {/* <DialogTitle id="alert-dialog-slide-title">{"Use Google's location service?"}</DialogTitle> */}
+        <DialogContent>
+          <DialogContentText id="alert-dialog-slide-description">
+            Apakah kamu bersedia jika kabar yang telah kamu berikan, kami memunculkan dalam kegiatan kabar minggu ini ?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleSubmit(true)} color="primary">
+            Bersedia
+          </Button>
+          <Button onClick={() => handleSubmit(false)} color="primary">
+            Tidak Bersedia
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </React.Fragment>
   );
 };

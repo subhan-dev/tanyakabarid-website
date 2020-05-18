@@ -1,8 +1,9 @@
 import React from 'react';
+import ReCAPTCHA from "react-google-recaptcha";
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
+// import FormControlLabel from '@material-ui/core/FormControlLabel';
+// import Checkbox from '@material-ui/core/Checkbox';
 
 import Question from '../../components/question/Question';
 
@@ -124,7 +125,8 @@ const data = [
   },
 ]
 
-export default ({ handleChange, input }) => {
+export default ({ handleChange, input, reCaptcha}) => {
+
   return (
     <React.Fragment>
       <Typography variant="h6" gutterBottom style={{marginBottom: '20px'}}>
@@ -138,11 +140,17 @@ export default ({ handleChange, input }) => {
           </Grid>
           )
         })}
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <FormControlLabel
             control={<Checkbox color="secondary" name="saveData" value="yes" />}
             label="Isi apa nich"
           />
+        </Grid> */}
+        <Grid item xs={12}>
+        <ReCAPTCHA
+          sitekey="6Le4MfkUAAAAADUWxQazqhFsBDSgVPEdfy_r_0A9"
+          onChange={reCaptcha}
+        />
         </Grid>
       </Grid>
     </React.Fragment>
